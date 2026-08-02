@@ -1,17 +1,232 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📞</text></svg>" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NexCall | Collaborative Video Workspace</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexCall | Collaborative Video & Whiteboard</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+    <!-- Socket.io client (for signaling) -->
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <a href="#" class="logo" id="logo-btn">
+                <span class="gradient-text">Nex</span>Call
+            </a>
+            
+            <nav class="nav-links">
+                <span id="user-greeting" class="user-greeting"></span>
+                <button id="auth-btn" class="btn btn-primary">
+                    <i class="fa-regular fa-user"></i> <span>Login</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="dashboard-container">
+        
+        <!-- View 1: Lobby View -->
+        <div id="lobby-view" class="view active">
+            <div class="view-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: stretch;">
+                
+                <!-- Left: Join Room Options -->
+                <div class="glass-card" style="padding: 2.5rem; display: flex; flex-direction: column; justify-content: center; gap: 1.5rem;">
+                    <div style="margin-bottom: 1rem;">
+                        <h1 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 0.5rem;"><span class="gradient-text">Real-Time</span> Meeting</h1>
+                        <p style="color: var(--text-muted); line-height: 1.5;">Connect with your team using WebRTC audio/video streams and collaborate on an interactive HTML5 whiteboard.</p>
+                    </div>
+
+                    <form id="join-room-form" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="room-id-input">Room ID</label>
+                            <input type="text" id="room-id-input" required value="lobby-sprint" placeholder="Enter meeting room ID">
+                        </div>
+                        <div class="form-group">
+                            <label for="username-input">Your Display Name</label>
+                            <input type="text" id="username-input" required value="Guest User" placeholder="Enter your name">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block" style="padding: 1rem;">
+                            <i class="fa-solid fa-right-to-bracket"></i> Join Meeting Room
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Right: Camera Preview & Settings -->
+                <div class="glass-card" style="padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; align-items: center; gap: 1rem;">
+                    <h3 style="font-weight: 700; align-self: flex-start;">Setup Preview</h3>
+                    
+                    <div class="video-preview-box" style="width: 100%; height: 260px; background: rgba(0,0,0,0.3); border-radius: 16px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+                        <video id="lobby-preview-video" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: none;"></video>
+                        <div id="video-placeholder" style="text-align: center; color: var(--text-muted);">
+                            <i class="fa-solid fa-video-slash" style="font-size: 2.5rem; margin-bottom: 1rem;"></i>
+                            <p>Camera is turned off</p>
+                        </div>
+                    </div>
+
+                    <!-- Mic indicator / toolbar -->
+                    <div style="display: flex; gap: 1.5rem; width: 100%; justify-content: center; margin-top: 0.5rem;">
+                        <button id="lobby-toggle-video" class="btn btn-outline" style="border-radius: 50%; width: 50px; height: 50px; padding: 0;">
+                            <i class="fa-solid fa-video"></i>
+                        </button>
+                        <button id="lobby-toggle-audio" class="btn btn-outline" style="border-radius: 50%; width: 50px; height: 50px; padding: 0;">
+                            <i class="fa-solid fa-microphone"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- View 2: Active Room Call View -->
+        <div id="room-view" class="view" style="display: none; height: calc(100vh - 120px);">
+            <div class="room-grid" style="display: grid; grid-template-columns: 350px 1fr 300px; gap: 1.5rem; height: 100%; align-items: stretch;">
+                
+                <!-- Left: Video Grid -->
+                <div class="glass-card" style="padding: 1.2rem; display: flex; flex-direction: column; gap: 1.2rem; overflow-y: auto;">
+                    <h3 style="font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
+                        <span>Meeting Members</span>
+                        <span id="room-id-badge" class="column-badge" style="background: var(--primary-color); color: white;">lobby-sprint</span>
+                    </h3>
+                    
+                    <div id="video-grid" style="display: flex; flex-direction: column; gap: 1rem; flex: 1;">
+                        <!-- Local Video Window -->
+                        <div class="video-window" style="position: relative; border-radius: 12px; height: 180px; background: #000; overflow: hidden; border: 1px solid var(--border-color);">
+                            <video id="local-video" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+                            <span style="position: absolute; bottom: 8px; left: 8px; font-size: 0.8rem; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 10px;">You (Local Stream)</span>
+                        </div>
+
+                        <!-- Remote User Placeholders -->
+                        <div class="video-window remote" style="position: relative; border-radius: 12px; height: 180px; background: #161622; overflow: hidden; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center;">
+                            <div style="text-align: center; color: var(--text-muted);">
+                                <div style="width: 60px; height: 60px; border-radius: 50%; background: #6366f1; margin: 0 auto 0.6rem; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.5rem; color: white;">A</div>
+                                <span>Alice (Remote User)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Middle: Collaborative Canvas Whiteboard -->
+                <div class="glass-card" style="padding: 1.2rem; display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                        <h3 style="font-size: 1.1rem;"><i class="fa-solid fa-chalkboard"></i> Collaborative Whiteboard</h3>
+                        
+                        <!-- Drawing Controls -->
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="color" id="brush-color" value="#6366f1" style="border: none; background: none; width: 35px; height: 35px; cursor: pointer; padding: 0; border-radius: 50%;">
+                            
+                            <select id="brush-size" class="board-select" style="padding: 4px 8px; font-size: 0.8rem;">
+                                <option value="2">2px Thin</option>
+                                <option value="5" selected>5px Normal</option>
+                                <option value="10">10px Thick</option>
+                                <option value="20">20px Eraser Size</option>
+                            </select>
+
+                            <button id="tool-brush" class="btn btn-outline active" style="padding: 4px 8px; font-size: 0.8rem;"><i class="fa-solid fa-pencil"></i> Brush</button>
+                            <button id="tool-eraser" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem;"><i class="fa-solid fa-eraser"></i> Eraser</button>
+                            <button id="clear-board" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem; border-color: rgba(248,113,113,0.3); color: #f87171;"><i class="fa-solid fa-trash"></i> Clear</button>
+                        </div>
+                    </div>
+
+                    <!-- Canvas -->
+                    <div style="flex: 1; border-radius: 12px; background: #ffffff; overflow: hidden; position: relative;">
+                        <canvas id="whiteboard" style="width: 100%; height: 100%; cursor: crosshair; display: block;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Right: Chat Sidebar Panel -->
+                <div class="glass-card" style="padding: 1.2rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem; overflow: hidden;">
+                    <h3 style="font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;"><i class="fa-regular fa-comments"></i> Room Chat</h3>
+                    
+                    <div id="chat-messages" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 5px;">
+                        <!-- Chat messages -->
+                        <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin: 1rem 0;">No messages yet.</div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="chat-msg-input" placeholder="Type a message..." style="flex: 1; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 20px; color: white; outline: none; font-size: 0.85rem;">
+                        <button id="send-chat-btn" class="btn btn-primary" style="border-radius: 50%; width: 36px; height: 36px; padding: 0;"><i class="fa-solid fa-paper-plane" style="font-size: 0.85rem;"></i></button>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Call Footer Toolbar Controls -->
+            <div style="position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); display: flex; gap: 1.5rem; z-index: 1000; background: rgba(15,23,42,0.7); backdrop-filter: blur(12px); border: 1px solid var(--border-color); padding: 10px 25px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                <button id="room-toggle-audio" class="btn btn-outline" style="border-radius: 50%; width: 45px; height: 45px; padding: 0;">
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
+                <button id="room-toggle-video" class="btn btn-outline" style="border-radius: 50%; width: 45px; height: 45px; padding: 0;">
+                    <i class="fa-solid fa-video"></i>
+                </button>
+                <button id="leave-room" class="btn btn-primary" style="border-radius: 50%; width: 45px; height: 45px; padding: 0; background: #ef4444; box-shadow: 0 4px 12px rgba(239,68,68,0.3);">
+                    <i class="fa-solid fa-phone-slash"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Auth Modal (Login / Register) -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content auth-box">
+            <button class="close-btn modal-close"><i class="fa-solid fa-xmark"></i></button>
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tab-login">Login</button>
+                <button class="auth-tab" id="tab-register">Register</button>
+            </div>
+
+            <!-- Login -->
+            <form id="login-form" class="auth-form active">
+                <div class="form-group">
+                    <label for="login-email">Email Address</label>
+                    <input type="email" id="login-email" required placeholder="name@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required placeholder="Enter password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Log In</button>
+            </form>
+
+            <!-- Register -->
+            <form id="register-form" class="auth-form">
+                <div class="form-group">
+                    <label for="reg-username">Username</label>
+                    <input type="text" id="reg-username" required placeholder="johndoe">
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">Email Address</label>
+                    <input type="email" id="reg-email" required placeholder="name@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Password</label>
+                    <input type="password" id="reg-password" required placeholder="Create strong password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Backend Selector -->
+    <div class="backend-selector">
+        <i class="fa-solid fa-server"></i>
+        <span>Backend:</span>
+        <select id="backend-api-select" class="select-input" style="padding: 2px 8px; border-radius: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer; outline: none;">
+            <option value="express">Express (5003)</option>
+            <option value="django">Django (8003)</option>
+        </select>
+    </div>
+
+    <!-- Script -->
+    <script src="app.js"></script>
+</body>
 </html>

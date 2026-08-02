@@ -1,17 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NexFlow | Agile Kanban Workspace</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexFlow | Collaborative Project Board</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <a href="#" class="logo">
+                <span class="gradient-text">Nex</span>Flow
+            </a>
+            
+            <nav class="nav-links">
+                <span id="user-greeting" class="user-greeting"></span>
+                <button id="auth-btn" class="btn btn-primary">
+                    <i class="fa-regular fa-user"></i> <span>Login</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="dashboard-container">
+        <!-- Toolbar -->
+        <div class="dashboard-toolbar">
+            <div class="board-select-wrapper">
+                <label for="board-select" style="font-weight: 500; font-size: 0.9rem; color: var(--text-muted);">Active Board:</label>
+                <select id="board-select" class="board-select">
+                    <option value="" disabled selected>Loading boards...</option>
+                </select>
+                <button id="new-board-btn" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                    <i class="fa-solid fa-plus"></i> New Board
+                </button>
+            </div>
+            
+            <button id="new-task-btn" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Add Task Card
+            </button>
+        </div>
+
+        <!-- Kanban Board -->
+        <div class="kanban-board">
+            <!-- To Do -->
+            <div class="kanban-column" id="col-todo" data-status="To Do">
+                <div class="column-header todo">
+                    <span class="column-title"><i class="fa-regular fa-circle-play"></i> To Do</span>
+                    <span class="column-badge" id="badge-todo">0</span>
+                </div>
+                <div class="cards-container" id="container-todo"></div>
+            </div>
+
+            <!-- In Progress -->
+            <div class="kanban-column" id="col-progress" data-status="In Progress">
+                <div class="column-header progress">
+                    <span class="column-title"><i class="fa-solid fa-spinner fa-pulse"></i> In Progress</span>
+                    <span class="column-badge" id="badge-progress">0</span>
+                </div>
+                <div class="cards-container" id="container-progress"></div>
+            </div>
+
+            <!-- Review -->
+            <div class="kanban-column" id="col-review" data-status="Review">
+                <div class="column-header review">
+                    <span class="column-title"><i class="fa-regular fa-eye"></i> Review</span>
+                    <span class="column-badge" id="badge-review">0</span>
+                </div>
+                <div class="cards-container" id="container-review"></div>
+            </div>
+
+            <!-- Done -->
+            <div class="kanban-column" id="col-done" data-status="Done">
+                <div class="column-header done">
+                    <span class="column-title"><i class="fa-regular fa-circle-check"></i> Done</span>
+                    <span class="column-badge" id="badge-done">0</span>
+                </div>
+                <div class="cards-container" id="container-done"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Create Board Modal -->
+    <div id="board-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content auth-box">
+            <button class="close-btn modal-close"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="margin-bottom: 1.5rem;">Create New Project Board</h2>
+            <form id="board-form">
+                <div class="form-group">
+                    <label for="board-title-input">Board Name</label>
+                    <input type="text" id="board-title-input" required placeholder="e.g. Sprint Release 2.0">
+                </div>
+                <div class="form-group">
+                    <label for="board-desc-input">Description</label>
+                    <input type="text" id="board-desc-input" placeholder="e.g. Core product management tasks">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Create Board</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Task Modal -->
+    <div id="task-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content auth-box">
+            <button class="close-btn modal-close"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="margin-bottom: 1.5rem;">Add Task Card</h2>
+            <form id="task-form">
+                <div class="form-group">
+                    <label for="task-title-input">Task Title</label>
+                    <input type="text" id="task-title-input" required placeholder="e.g. Design homepage layout">
+                </div>
+                <div class="form-group">
+                    <label for="task-desc-input">Description</label>
+                    <input type="text" id="task-desc-input" placeholder="Enter task card description">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="task-priority-input">Priority</label>
+                        <select id="task-priority-input" class="board-select" style="width: 100%; height: 40px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: white;">
+                            <option value="High">High</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-assignee-input">Assignee</label>
+                        <input type="text" id="task-assignee-input" placeholder="e.g. Alice" value="Unassigned">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="task-date-input">Due Date</label>
+                    <input type="date" id="task-date-input" style="color-scheme: dark;">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Create Task</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Task Details Modal -->
+    <div id="details-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content" style="max-width: 600px; width: 90%;">
+            <button class="close-btn modal-close"><i class="fa-solid fa-xmark"></i></button>
+            <div id="details-body">
+                <!-- Loaded Dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal (Login / Register) -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content auth-box">
+            <button class="close-btn modal-close"><i class="fa-solid fa-xmark"></i></button>
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tab-login">Login</button>
+                <button class="auth-tab" id="tab-register">Register</button>
+            </div>
+
+            <!-- Login -->
+            <form id="login-form" class="auth-form active">
+                <div class="form-group">
+                    <label for="login-email">Email Address</label>
+                    <input type="email" id="login-email" required placeholder="name@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required placeholder="Enter password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Log In</button>
+            </form>
+
+            <!-- Register -->
+            <form id="register-form" class="auth-form">
+                <div class="form-group">
+                    <label for="reg-username">Username</label>
+                    <input type="text" id="reg-username" required placeholder="johndoe">
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">Email Address</label>
+                    <input type="email" id="reg-email" required placeholder="name@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Password</label>
+                    <input type="password" id="reg-password" required placeholder="Create strong password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Backend Selector -->
+    <div class="backend-selector">
+        <i class="fa-solid fa-server"></i>
+        <span>Backend:</span>
+        <select id="backend-api-select" class="select-input" style="padding: 2px 8px; border-radius: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer; outline: none;">
+            <option value="express">Express (5002)</option>
+            <option value="django">Django (8002)</option>
+        </select>
+    </div>
+
+    <!-- Script -->
+    <script src="app.js"></script>
+</body>
 </html>
