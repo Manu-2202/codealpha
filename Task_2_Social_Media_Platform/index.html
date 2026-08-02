@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexSocial | Next-Gen Social Network</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <a href="#" class="logo" id="logo-btn">
+                <span class="gradient-text">Nex</span>Social
+            </a>
+            
+            <nav class="nav-links">
+                <button id="feed-tab-btn" class="nav-tab active">
+                    <i class="fa-solid fa-house"></i> <span>Feed</span>
+                </button>
+                <button id="profile-tab-btn" class="nav-tab">
+                    <i class="fa-solid fa-user"></i> <span>Profile</span>
+                </button>
+                <button id="auth-btn" class="btn btn-primary">
+                    <span>Login</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-container">
+        <!-- Feed View -->
+        <div id="feed-view" class="view active">
+            <div class="view-grid">
+                <!-- Left Sidebar (User Brief Card) -->
+                <aside class="sidebar-left">
+                    <div class="glass-card user-brief-card" id="user-brief-widget">
+                        <!-- Filled by JS -->
+                        <div class="widget-placeholder">
+                            <div class="avatar-placeholder"></div>
+                            <h4>Sign in to view metrics</h4>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Middle Content Feed -->
+                <main class="feed-content">
+                    <!-- Create Post Box -->
+                    <div class="glass-card create-post-box">
+                        <div class="create-post-header">
+                            <div class="avatar" id="create-post-avatar">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <textarea id="post-input" placeholder="What's happening in the future?"></textarea>
+                        </div>
+                        <div class="create-post-actions">
+                            <button class="btn-icon"><i class="fa-regular fa-image"></i></button>
+                            <button class="btn-icon"><i class="fa-regular fa-face-smile"></i></button>
+                            <button id="submit-post-btn" class="btn btn-primary">Post</button>
+                        </div>
+                    </div>
+
+                    <!-- Post List -->
+                    <div id="posts-list" class="posts-list">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </main>
+
+                <!-- Right Sidebar (Who to Follow) -->
+                <aside class="sidebar-right">
+                    <div class="glass-card widget-card">
+                        <h3>Who to Follow</h3>
+                        <div class="follow-list" id="who-to-follow-list">
+                            <!-- Filled dynamically -->
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+        <!-- Profile View -->
+        <div id="profile-view" class="view">
+            <div class="profile-header-card glass-card">
+                <div class="profile-banner"></div>
+                <div class="profile-avatar-row">
+                    <div class="profile-avatar" id="profile-page-avatar">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <button class="btn btn-outline" id="follow-toggle-btn">Edit Profile</button>
+                </div>
+                <div class="profile-details-info">
+                    <h2 id="profile-page-name">User Name</h2>
+                    <p class="handle" id="profile-page-handle">@username</p>
+                    <p class="bio" id="profile-page-bio">This is a bio. Write something amazing about yourself here!</p>
+                    
+                    <div class="profile-stats">
+                        <div class="stat">
+                            <span class="stat-num" id="stat-posts">0</span>
+                            <span class="stat-label">Posts</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-num" id="stat-followers">120</span>
+                            <span class="stat-label">Followers</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-num" id="stat-following">84</span>
+                            <span class="stat-label">Following</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Posts -->
+            <div class="profile-posts-section">
+                <h3>My Posts</h3>
+                <div id="profile-posts-list" class="posts-list">
+                    <!-- Dynamic -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content auth-box">
+            <button class="close-btn modal-close"><i class="fa-solid fa-xmark"></i></button>
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tab-login">Login</button>
+                <button class="auth-tab" id="tab-register">Register</button>
+            </div>
+            <form id="login-form" class="auth-form active">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" required placeholder="user@gmail.com">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Log In</button>
+            </form>
+            <form id="register-form" class="auth-form">
+                <div class="form-group">
+                    <label for="reg-username">Username</label>
+                    <input type="text" id="reg-username" required placeholder="alex_cyber">
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">Email</label>
+                    <input type="email" id="reg-email" required placeholder="alex@gmail.com">
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Password</label>
+                    <input type="password" id="reg-password" required placeholder="Create password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Register</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
