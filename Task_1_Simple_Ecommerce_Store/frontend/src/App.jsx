@@ -509,24 +509,8 @@ export default function App() {
                 </div>
             </header>
 
-            {/* Offline Notification */}
-            {isOffline && (
-                <div style={{
-                    background: 'rgba(245, 158, 11, 0.15)',
-                    borderBottom: '1px solid rgba(245, 158, 11, 0.3)',
-                    color: '#f59e0b',
-                    padding: '8px',
-                    fontSize: '0.85rem',
-                    fontWeight: 500,
-                    marginTop: '65px',
-                    textAlign: 'center'
-                }}>
-                    <i className="fa-solid fa-triangle-exclamation"></i> Backend server offline. Running in Simulated Client Mode (updates will save in memory).
-                </div>
-            )}
-
             {/* Main content switches */}
-            <main className="main-container" style={{ marginTop: isOffline ? '20px' : '85px' }}>
+            <main className="main-container" style={{ marginTop: '85px' }}>
                 
                 {/* 1. SHOP FRONT VIEW */}
                 {activeView === 'shop' && (

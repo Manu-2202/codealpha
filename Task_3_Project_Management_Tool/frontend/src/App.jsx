@@ -469,24 +469,8 @@ export default function App() {
                 </div>
             </header>
 
-            {/* Offline Notification */}
-            {isOffline && (
-                <div style={{
-                    background: 'rgba(245, 158, 11, 0.15)',
-                    borderBottom: '1px solid rgba(245, 158, 11, 0.3)',
-                    color: '#f59e0b',
-                    padding: '8px',
-                    fontSize: '0.85rem',
-                    fontWeight: 500,
-                    marginTop: '65px',
-                    textAlign: 'center'
-                }}>
-                    <i className="fa-solid fa-triangle-exclamation"></i> Server offline fallback. Sprint boards, checklists, and tasks running in simulated local memory.
-                </div>
-            )}
-
             {/* Main Application Container */}
-            <main className="main-container" style={{ marginTop: isOffline ? '20px' : '85px', maxWidth: '1080px' }}>
+            <main className="main-container" style={{ marginTop: '85px', maxWidth: '1080px' }}>
 
                 {/* 1. DASHBOARD VIEW */}
                 {activeTab === 'dashboard' && (

@@ -386,24 +386,8 @@ export default function App() {
                 </div>
             </header>
 
-            {/* Offline Notification */}
-            {isOffline && (
-                <div style={{
-                    background: 'rgba(245, 158, 11, 0.15)',
-                    borderBottom: '1px solid rgba(245, 158, 11, 0.3)',
-                    color: '#f59e0b',
-                    padding: '8px',
-                    fontSize: '0.85rem',
-                    fontWeight: 500,
-                    marginTop: '65px',
-                    textAlign: 'center'
-                }}>
-                    <i className="fa-solid fa-triangle-exclamation"></i> Offline fallback activated. Posting and commenting running in simulated local memory.
-                </div>
-            )}
-
             {/* Main Application Switch */}
-            <main className="main-container" style={{ marginTop: isOffline ? '20px' : '85px', maxWidth: activeTab === 'messenger' ? '1100px' : '960px' }}>
+            <main className="main-container" style={{ marginTop: '85px', maxWidth: activeTab === 'messenger' ? '1100px' : '960px' }}>
                 
                 {/* 1. TIMELINE FEED VIEW */}
                 {activeTab === 'feed' && (

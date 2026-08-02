@@ -461,23 +461,7 @@ export default function App() {
                 </div>
             </header>
 
-            {/* Offline warning banner */}
-            {isOffline && (
-                <div style={{
-                    background: 'rgba(245, 158, 11, 0.15)',
-                    borderBottom: '1px solid rgba(245, 158, 11, 0.3)',
-                    color: '#f59e0b',
-                    padding: '8px',
-                    fontSize: '0.85rem',
-                    fontWeight: 500,
-                    marginTop: '65px',
-                    textAlign: 'center'
-                }}>
-                    <i className="fa-solid fa-triangle-exclamation"></i> Server offline mode. Joining room, whiteboard canvas and signals running locally.
-                </div>
-            )}
-
-            <main className="main-container" style={{ marginTop: isOffline ? '20px' : '85px', maxWidth: '960px' }}>
+            <main className="main-container" style={{ marginTop: '85px', maxWidth: '960px' }}>
                 <div className="lobby-overlay" style={{ position: 'relative', display: 'grid', gridTemplateColumns: '240px 1fr', gap: '2rem', padding: '1.5rem', borderRadius: '16px', background: 'rgba(18, 18, 26, 0.55)', border: '1px solid var(--border-color)', minHeight: '480px' }}>
                     
                     {/* Lobby Sidebar menu */}
