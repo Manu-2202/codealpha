@@ -159,6 +159,40 @@ export default function App() {
     const [contactMsg, setContactMsg] = useState('');
     const [activeFaq, setActiveFaq] = useState(null);
 
+    // Auto Login Guest to keep database online
+    useEffect(() => {
+        const autoLoginGuest = async () => {
+            if (user) return;
+            try {
+                let res = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: 'guest_user@gmail.com', password: 'guest123' })
+                });
+                let data = await res.json();
+                if (res.ok) {
+                    setUser(data);
+                    localStorage.setItem('nexshop_user', JSON.stringify(data));
+                    return;
+                }
+                
+                res = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'Guest Admin', email: 'guest_user@gmail.com', password: 'guest123' })
+                });
+                data = await res.json();
+                if (res.ok) {
+                    setUser(data);
+                    localStorage.setItem('nexshop_user', JSON.stringify(data));
+                }
+            } catch (err) {
+                console.error("Auto login failed", err);
+            }
+        };
+        autoLoginGuest();
+    }, [user]);
+
     // Load products and user orders from Backend or Fallback
     useEffect(() => {
         const fetchProducts = async () => {

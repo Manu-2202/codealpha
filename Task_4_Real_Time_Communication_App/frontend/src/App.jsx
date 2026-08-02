@@ -57,6 +57,42 @@ export default function App() {
     const [regEmail, setRegEmail] = useState('');
     const [regPassword, setRegPassword] = useState('');
 
+    // Auto Login Guest to keep database online
+    useEffect(() => {
+        const autoLoginGuest = async () => {
+            if (user) return;
+            try {
+                let res = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: 'guest_user@gmail.com', password: 'guest123' })
+                });
+                let data = await res.json();
+                if (res.ok) {
+                    setUser(data);
+                    localStorage.setItem('nexcall_user', JSON.stringify(data));
+                    setUsername(data.username);
+                    return;
+                }
+
+                res = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'Guest Streamer', email: 'guest_user@gmail.com', password: 'guest123' })
+                });
+                data = await res.json();
+                if (res.ok) {
+                    setUser(data);
+                    localStorage.setItem('nexcall_user', JSON.stringify(data));
+                    setUsername(data.username);
+                }
+            } catch (err) {
+                console.error("Auto login failed", err);
+            }
+        };
+        autoLoginGuest();
+    }, [user]);
+
     // Check backend connection
     useEffect(() => {
         const pingBackend = async () => {
