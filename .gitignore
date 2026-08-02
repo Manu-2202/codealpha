@@ -12,3 +12,8 @@
 **/.DS_Store
 *.log
 Thumbs.db
+
+# Ignore Django artifacts
+**/__pycache__/
+*.pyc
+**/db.sqlite3
